@@ -159,17 +159,17 @@ char *infix2postfix(const char *infixExpression) {
     int pos = 0;
     unsigned length = 0;
 
-    char *postfixExpression = malloc(MAX_LEN * sizeof(char));
-    if (postfixExpression == NULL) {
-        free(stack);
-        return NULL;
-    }
-
     Stack *stack = malloc(sizeof(Stack));
     if (stack == NULL) {
         return NULL;
     }
     Stack_Init(stack);
+
+    char *postfixExpression = malloc(MAX_LEN * sizeof(char));
+    if (postfixExpression == NULL) {
+        free(stack);
+        return NULL;
+    }
 
     while (infixExpression[pos] != '\0') {
         char c = infixExpression[pos];

@@ -65,8 +65,8 @@ bool solved;
  * Tato funkce bude volána z některých dále implementovaných operací.
  */
 void DLL_Error(void) {
-	printf("*ERROR* The program has performed an illegal operation.\n");
-	error_flag = true;
+    printf("*ERROR* The program has performed an illegal operation.\n");
+    error_flag = true;
 }
 
 /**
@@ -93,11 +93,13 @@ void DLL_Init( DLList *list ) {
  */
 void DLL_Dispose( DLList *list ) {
     DLLElementPtr element = list->firstElement;
-    while(element != NULL) { // Dokud nedojde na konec seznamu
-        DLLElementPtr temp = element->nextElement; //Ulozeni odkazu na dalsi prvek
+
+    while (element != NULL) {
+        DLLElementPtr temp = element->nextElement;
         free(element);
         element = temp;
     }
+
     list->firstElement = NULL;
     list->activeElement = NULL;
     list->lastElement = NULL;
@@ -113,19 +115,23 @@ void DLL_Dispose( DLList *list ) {
  */
 void DLL_InsertFirst( DLList *list, int data ) {
     DLLElementPtr newElemPtr = malloc(sizeof(struct DLLElement));
+
     if (newElemPtr == NULL) {
         DLL_Error();
         return;
     }
+
     newElemPtr->data = data;
     newElemPtr->previousElement = NULL;
     newElemPtr->nextElement = list->firstElement;
+
     if (list->firstElement != NULL) {
         list->firstElement->previousElement = newElemPtr;
     }
     if (list->lastElement == NULL) {
         list->lastElement = newElemPtr;
     }
+
     list->firstElement = newElemPtr;
 }
 
@@ -139,19 +145,24 @@ void DLL_InsertFirst( DLList *list, int data ) {
  */
 void DLL_InsertLast( DLList *list, int data ) {
     DLLElementPtr newElemPtr = malloc(sizeof(struct DLLElement));
+
     if (newElemPtr == NULL) {
         DLL_Error();
         return;
     }
+
     newElemPtr->data = data;
     newElemPtr->nextElement = NULL;
     newElemPtr->previousElement = list->lastElement;
+
     if (list->lastElement != NULL) {
         list->lastElement->nextElement = newElemPtr;
     }
+
     if (list->firstElement == NULL) {
         list->firstElement = newElemPtr;
     }
+
     list->lastElement = newElemPtr;
 }
 
@@ -185,7 +196,12 @@ void DLL_Last( DLList *list ) {
  * @param dataPtr Ukazatel na cílovou proměnnou
  */
 void DLL_GetFirst( DLList *list, int *dataPtr ) {
-    (list->firstElement == NULL) ? DLL_Error() : (*dataPtr = list->firstElement->data);
+    if (list->firstElement == NULL) {
+        DLL_Error();
+        return;
+    } else {
+        *dataPtr = list->firstElement->data;
+    }
 }
 
 /**
@@ -196,7 +212,12 @@ void DLL_GetFirst( DLList *list, int *dataPtr ) {
  * @param dataPtr Ukazatel na cílovou proměnnou
  */
 void DLL_GetLast( DLList *list, int *dataPtr ) {
-    (list->lastElement == NULL) ? DLL_Error() : (*dataPtr = list->lastElement->data);
+    if (list->lastElement == NULL) {
+        DLL_Error();
+        return;
+    } else {
+        *dataPtr = list->lastElement->data;
+    }
 }
 
 /**
@@ -359,7 +380,12 @@ void DLL_InsertBefore( DLList *list, int data ) {
  * @param dataPtr Ukazatel na cílovou proměnnou
  */
 void DLL_GetValue( DLList *list, int *dataPtr ) {
-    (list->activeElement == NULL) ? DLL_Error() : (*dataPtr = list->activeElement->data);
+    if (list->activeElement == NULL) {
+        DLL_Error();
+        return;
+    } else {
+        *dataPtr = list->activeElement->data;
+    }
 }
 
 /**

@@ -69,3 +69,5 @@ Is stack full? Yes
 
 [test_dispose] Dispose stack
 STACK: BOTTOM [ a b c d e f g h ] TOP
+STACK: NOT INITIALISED
+
