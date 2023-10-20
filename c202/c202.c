@@ -43,20 +43,20 @@ bool solved;
  * @param error_code Interní identifikátor chyby
  */
 void Stack_Error( int error_code ) {
-	static const char *SERR_STRINGS[MAX_SERR + 1] = {
-			"Unknown error",
-			"Stack error: INIT",
-			"Stack error: PUSH",
-			"Stack error: TOP"
-	};
+    static const char *SERR_STRINGS[MAX_SERR + 1] = {
+            "Unknown error",
+            "Stack error: INIT",
+            "Stack error: PUSH",
+            "Stack error: TOP"
+    };
 
-	if (error_code <= 0 || error_code > MAX_SERR)
-	{
-		error_code = 0;
-	}
+    if (error_code <= 0 || error_code > MAX_SERR)
+    {
+        error_code = 0;
+    }
 
-	printf("%s\n", SERR_STRINGS[error_code]);
-	error_flag = true;
+    printf("%s\n", SERR_STRINGS[error_code]);
+    error_flag = true;
 }
 
 /**
@@ -72,12 +72,14 @@ void Stack_Error( int error_code ) {
  * @param stack Ukazatel na strukturu zásobníku
  */
 void Stack_Init( Stack *stack ) {
-	if(stack == NULL) {
-        Stack_Error(SERR_INIT);
+    // check if stack is NULL
+    if (stack == NULL) {
+        Stack_Error(SERR_INIT); // call Stack_Error
     }
+        // if stack is not NULL, initialize it
     else {
-        stack->array = (char*) malloc(STACK_SIZE * sizeof(char));
-        stack->topIndex = -1;
+        stack->array = (char*) malloc(STACK_SIZE * sizeof(char)); // allocate memory for stack
+        stack->topIndex = -1; // set topIndex to -1
     }
 }
 
@@ -91,6 +93,7 @@ void Stack_Init( Stack *stack ) {
  * @returns true v případě, že je zásobník prázdný, jinak false
  */
 bool Stack_IsEmpty( const Stack *stack ) {
+    // check if stack is empty and return true if it is, false if it is not
     if(stack->topIndex == -1){
         return true;
     }
@@ -112,7 +115,8 @@ bool Stack_IsEmpty( const Stack *stack ) {
  * @returns true v případě, že je zásobník plný, jinak false
  */
 bool Stack_IsFull( const Stack *stack ) {
-    return stack->topIndex == STACK_SIZE-1 ? true : false;
+    // check if stack is full and return true if it is, false if it is not
+    return stack->topIndex == STACK_SIZE - 1 ? true : false;
 }
 
 /**
@@ -128,11 +132,12 @@ bool Stack_IsFull( const Stack *stack ) {
  * @param dataPtr Ukazatel na cílovou proměnnou
  */
 void Stack_Top( const Stack *stack, char *dataPtr ) {
+    // check if stack is empty and call Stack_Error if it is
     if (Stack_IsEmpty(stack) == true) {
         Stack_Error(SERR_TOP);
     }
     else {
-        *dataPtr = stack->array[stack->topIndex];
+        *dataPtr = stack->array[stack->topIndex]; // set dataPtr to topIndex of stack
     }
 }
 
@@ -150,12 +155,13 @@ void Stack_Top( const Stack *stack, char *dataPtr ) {
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  */
 void Stack_Pop( Stack *stack ) {
-	if(Stack_IsEmpty(stack) == true) {
+    // check if stack is empty and call Stack_Error if it is
+    if (Stack_IsEmpty(stack) == true) {
         Stack_Error(SERR_TOP);
     }
     else {
-        stack->array[stack->topIndex] = '\0';
-        stack->topIndex = stack->topIndex-1;
+        stack->array[stack->topIndex] = '\0'; // set topIndex of stack to NULL
+        stack->topIndex--; // decrement topIndex of stack
     }
 }
 
@@ -171,12 +177,13 @@ void Stack_Pop( Stack *stack ) {
  * @param data Znak k vložení
  */
 void Stack_Push( Stack *stack, char data ) {
-	if(Stack_IsFull(stack) == true) {
+    // check if stack is full and call Stack_Error if it is
+    if (Stack_IsFull(stack) == true) {
         Stack_Error(SERR_PUSH);
     }
     else {
-        stack->topIndex = stack->topIndex+1;
-        stack->array[stack->topIndex] = data;
+        stack->topIndex++; // increment topIndex of stack
+        stack->array[stack->topIndex] = data; // set topIndex of stack to data
     }
 }
 
@@ -188,11 +195,12 @@ void Stack_Push( Stack *stack, char data ) {
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  */
 void Stack_Dispose( Stack *stack ) {
+    // free memory of stack
     while (stack->topIndex != -1) {
         Stack_Pop(stack);
     }
-    stack->array = NULL;
-    stack = NULL;
+    stack->array = NULL; // set array of stack to NULL
+    stack = NULL; // set stack to NULL
 }
 
 /* Konec c202.c */
