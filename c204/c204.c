@@ -54,19 +54,23 @@ bool solved;
  * @param postfixExpressionLength Ukazatel na aktuální délku výsledného postfixového výrazu
  */
 void untilLeftPar(Stack *stack, char *postfixExpression, unsigned *postfixExpressionLength) {
+    // check if stack is empty and if it is, return from function
     if (Stack_IsEmpty(stack)) {
         return;
-    }
-
-    char Top;
-    while (Stack_IsEmpty(stack) == false) {
-        Stack_Top(stack, &Top);
-        if (Top == '(') {
+    } else {
+        char Top;
+        // while stack is not empty pop elements from stack and add them to postfixExpression
+        while (Stack_IsEmpty(stack) == false) {
+            Stack_Top(stack, &Top);
+            // if top of stack is left parenthesis, pop it and break from loop
+            if (Top == '(') {
+                Stack_Pop(stack);
+                break;
+            }
+            // pop top of stack and add it to postfixExpression
             Stack_Pop(stack);
-            break;
+            postfixExpression[(*postfixExpressionLength)++] = Top;
         }
-        Stack_Pop(stack);
-        postfixExpression[(*postfixExpressionLength)++] = Top;
     }
 }
 
@@ -87,24 +91,26 @@ void untilLeftPar(Stack *stack, char *postfixExpression, unsigned *postfixExpres
  * @param postfixExpressionLength Ukazatel na aktuální délku výsledného postfixového výrazu
  */
 void doOperation(Stack *stack, char c, char *postfixExpression, unsigned *postfixExpressionLength) {
+    // check if stack is empty and if it is, push c to stack and return from function
     if (Stack_IsEmpty(stack) == true) {
         Stack_Push(stack, c);
         return;
-    }
-
-    char Top;
-    while (Stack_IsEmpty(stack) == false) {
-        Stack_Top(stack, &Top);
-
-        if (((Top == '+' || Top == '-') && (c == '*' || c == '/')) ||
-            Top == '(') {
-            Stack_Push(stack, c);
-            return;
+    } else {
+        char Top;
+        while (Stack_IsEmpty(stack) == false) {
+            Stack_Top(stack, &Top);
+            // if priority of c is lower than priority of top of stack or top of stack is left parenthesis, push c to stack and return from function
+            if (((Top == '+' || Top == '-') && (c == '*' || c == '/')) ||
+                Top == '(') {
+                Stack_Push(stack, c);
+                return;
+            }
+            // pop top of stack and add it to postfixExpression
+            postfixExpression[(*postfixExpressionLength)++] = Top;
+            Stack_Pop(stack);
         }
-        postfixExpression[(*postfixExpressionLength)++] = Top;
-        Stack_Pop(stack);
+        Stack_Push(stack, c);
     }
-    Stack_Push(stack, c);
 }
 
 /**
@@ -159,28 +165,35 @@ char *infix2postfix(const char *infixExpression) {
     int pos = 0;
     unsigned length = 0;
 
+    // allocate memory for stack
     Stack *stack = malloc(sizeof(Stack));
-    if (stack == NULL) {
+    if (stack == NULL) { // check if allocation was successful
         return NULL;
     }
-    Stack_Init(stack);
+    Stack_Init(stack); // initialize stack
 
+    // allocate memory for postfixExpression
     char *postfixExpression = malloc(MAX_LEN * sizeof(char));
-    if (postfixExpression == NULL) {
-        free(stack);
+    if (postfixExpression == NULL) { // check if allocation was successful
+        free(stack); // free memory for stack
         return NULL;
     }
 
+    // while infixExpression is not empty
     while (infixExpression[pos] != '\0') {
+        // read character from infixExpression
         char c = infixExpression[pos];
 
+        // if character is left parenthesis, push it to stack
         if (c == '(') {
             Stack_Push(stack, c);
-        } else if (c == ')') {
+        } else if (c == ')') { // if character is right parenthesis, call untilLeftPar function
             untilLeftPar(stack, postfixExpression, &length);
         } else if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
+            // if character is operand, add it to postfixExpression
             postfixExpression[length++] = c;;
         } else if (c == '+' || c == '-' || c == '*' || c == '/') {
+            // if character is operator, call doOperation function
             doOperation(stack, c, postfixExpression, &length);
         } else if (c == '=') {
             while (Stack_IsEmpty(stack) == false) {
