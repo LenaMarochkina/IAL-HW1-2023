@@ -94,12 +94,7 @@ void Stack_Init( Stack *stack ) {
  */
 bool Stack_IsEmpty( const Stack *stack ) {
     // check if stack is empty and return true if it is, false if it is not
-    if(stack->topIndex == -1){
-        return true;
-    }
-    else {
-        return false;
-    }
+    return stack->topIndex == -1 ? true : false;
 }
 
 /**
@@ -201,6 +196,7 @@ void Stack_Dispose( Stack *stack ) {
     }
     stack->array = NULL; // set array of stack to NULL
     stack = NULL; // set stack to NULL
+    free(stack); // free memory of stack
 }
 
 /* Konec c202.c */

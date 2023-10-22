@@ -58,18 +58,18 @@ void untilLeftPar(Stack *stack, char *postfixExpression, unsigned *postfixExpres
     if (Stack_IsEmpty(stack)) {
         return;
     } else {
-        char Top;
+        char top;
         // while stack is not empty pop elements from stack and add them to postfixExpression
         while (Stack_IsEmpty(stack) == false) {
-            Stack_Top(stack, &Top);
+            Stack_Top(stack, &top);
             // if top of stack is left parenthesis, pop it and break from loop
-            if (Top == '(') {
+            if (top == '(') {
                 Stack_Pop(stack);
                 break;
             }
             // pop top of stack and add it to postfixExpression
             Stack_Pop(stack);
-            postfixExpression[(*postfixExpressionLength)++] = Top;
+            postfixExpression[(*postfixExpressionLength)++] = top;
         }
     }
 }
@@ -96,17 +96,18 @@ void doOperation(Stack *stack, char c, char *postfixExpression, unsigned *postfi
         Stack_Push(stack, c);
         return;
     } else {
-        char Top;
+        char top;
         while (Stack_IsEmpty(stack) == false) {
-            Stack_Top(stack, &Top);
+            Stack_Top(stack, &top);
             // if priority of c is lower than priority of top of stack or top of stack is left parenthesis, push c to stack and return from function
-            if (((Top == '+' || Top == '-') && (c == '*' || c == '/')) ||
-                Top == '(') {
+            if (((top == '+' || top == '-') && (c == '*' || c == '/')) ||
+                top == '(') {
                 Stack_Push(stack, c);
                 return;
             }
             // pop top of stack and add it to postfixExpression
-            postfixExpression[(*postfixExpressionLength)++] = Top;
+            postfixExpression[*postfixExpressionLength] = top;
+            (*postfixExpressionLength)++;
             Stack_Pop(stack);
         }
         Stack_Push(stack, c);
@@ -211,7 +212,6 @@ char *infix2postfix(const char *infixExpression) {
     return postfixExpression;
 }
 
-
 /**
  * Pomocná metoda pro vložení celočíselné hodnoty na zásobník.
  *
@@ -224,7 +224,9 @@ char *infix2postfix(const char *infixExpression) {
  * @param value hodnota k vložení na zásobník
  */
 void expr_value_push(Stack *stack, int value) {
-    solved = false; /* V případě řešení, smažte tento řádek! */
+    stack->topIndex++; // Increment the top index
+    int *newPtr = (int *)&stack->array[stack->topIndex]; // Calculate the address for the new element
+    *newPtr = value; // Assign the value to the new element
 }
 
 /**
@@ -240,10 +242,13 @@ void expr_value_push(Stack *stack, int value) {
  *   výsledné celočíselné hodnoty z vrcholu zásobníku
  */
 void expr_value_pop(Stack *stack, int *value) {
-    solved = false; /* V případě řešení, smažte tento řádek! */
-    *value = 0;
+    if (stack->topIndex >= 0) {
+        *value = stack->array[stack->topIndex]; // Get the value from the top of the stack
+        stack->topIndex--; // Decrement the top index
+    } else {
+        *value = 0; // Set the value to 0 when the stack is empty
+    }
 }
-
 
 /**
  * Tato metoda provede vyhodnocení výrazu zadaném v `infixExpression`,
@@ -267,9 +272,77 @@ void expr_value_pop(Stack *stack, int *value) {
  *
  * @return výsledek vyhodnocení daného výrazu na základě poskytnutých hodnot proměnných
  */
-bool eval(const char *infixExpression, VariableValue variableValues[], int variableValueCount, int *value) {
-    solved = false; /* V případě řešení, smažte tento řádek! */
-    return NULL;
+bool eval(const char *infixExpression, VariableValue variableValues[], int variableValueCount, int *result) {
+    char *postfixExpression = infix2postfix(infixExpression);
+    if (postfixExpression == NULL) {
+        return false;
+    }
+
+    Stack expressionStack;
+    Stack_Init(&expressionStack);
+
+    for (int i = 0; postfixExpression[i]; i++) {
+        char currentToken = postfixExpression[i];
+
+        if (currentToken == '=') {
+            continue; // Skip the assignment operator
+        } else if (currentToken >= '0' && currentToken <= '9') {
+            // If it's a digit, push its integer value onto the stack
+            expr_value_push(&expressionStack, currentToken - '0');
+        } else if ((currentToken >= 'a' && currentToken <= 'z') || (currentToken >= 'A' && currentToken <= 'Z')) {
+            // If it's an alphabetic character, find its corresponding value in variableValues
+            char variableName = currentToken;
+            int variableValue = 0;
+
+            for (int j = 0; j < variableValueCount; j++) {
+                if (variableValues[j].name == variableName) {
+                    variableValue = variableValues[j].value;
+                    break;
+                }
+            }
+
+            expr_value_push(&expressionStack, variableValue);
+        } else {
+            // If it's an operator, perform the operation on the top two values in the stack
+            int operator2;
+            expr_value_pop(&expressionStack, &operator2);
+
+            int operator1;
+            expr_value_pop(&expressionStack, &operator1);
+
+            int operationResult;
+
+            if (currentToken == '+') {
+                operationResult = operator1 + operator2;
+            } else if (currentToken == '-') {
+                operationResult = operator1 - operator2;
+            } else if (currentToken == '*') {
+                operationResult = operator1 * operator2;
+            } else if (currentToken == '/') {
+                // Handle division by zero
+                if (operator2 == 0) {
+                    Stack_Dispose(&expressionStack);
+                    free(postfixExpression);
+                    return false;
+                }
+                operationResult = operator1 / operator2;
+            } else {
+                // Handle unsupported operator
+                Stack_Dispose(&expressionStack);
+                free(postfixExpression);
+                return false;
+            }
+
+            expr_value_push(&expressionStack, operationResult);
+        }
+    }
+
+    // The result is the top value on the stack
+    expr_value_pop(&expressionStack, result);
+    Stack_Dispose(&expressionStack);
+    free(postfixExpression);
+
+    return true;
 }
 
 /* Konec c204.c */
